@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carta de hoy</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --sky-top:#7fc2e8;
+    --sky-bottom:#bfe3f5;
+    --grass-dark:#4c9a4a;
+    --grass-light:#6ec25e;
+    --tower-stone:#d3c8cd;
+    --tower-stone-dark:#a7969f;
+    --tower-arch:#493642;
+    --purple:#5b3a7a;
+    --purple-dark:#3d2554;
+    --gold:#d4af6a;
+    --lavender:#6a4a5a;
+    --parchment:#f6f1e2;
+    --parchment-edge:#ded1ac;
+    --ink:#3a2f22;
+    --wine:#7a5230;
+  }
+
+  *{
+    box-sizing:border-box;
+  }
+
+  html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:linear-gradient(
+      180deg,
+      var(--sky-top) 0%,
+      var(--sky-bottom) 100%
+    );
+    font-family:'EB Garamond',serif;
+  }
+
+  /* =====================================================
+     ESCENA
+  ===================================================== */
+
+  .scene{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+
+  .cloud{
+    position:absolute;
+    background:rgba(255,255,255,.9);
+    border-radius:50px;
+    filter:blur(.5px);
+    animation:driftSide linear infinite;
+  }
+
+  @keyframes driftSide{
+    0%{
+      transform:translateX(-10vw);
+    }
+    100%{
+      transform:translateX(110vw);
+    }
+  }
+
+  /* =====================================================
+     PAJARITOS
+  ===================================================== */
+
+  .bird{
+    position:absolute;
+    left:-80px;
+    top:var(--top);
+    width:38px;
+    height:20px;
+    animation:birdFly var(--duration) linear infinite;
+    animation-delay:var(--delay);
+    opacity:0;
+  }
+
+  .bird::before,
+  .bird::after{
+    content:"";
+    position:absolute;
+    top:7px;
+    width:18px;
+    height:9px;
+    border-top:3px solid rgba(65,75,85,.7);
+    border-radius:50%;
+  }
+
+  .bird::before{
+    right:18px;
+    transform:rotate(18deg);
+  }
+
+  .bird::after{
+    left:18px;
+    transform:rotate(-18deg);
+  }
+
+  @keyframes birdFly{
+    0%{
+      transform:translateX(0) translateY(0) scale(.8);
+      opacity:0;
+    }
+    8%{
+      opacity:.75;
+    }
+    45%{
+      transform:translateX(50vw) translateY(-18px) scale(1);
+      opacity:.8;
+    }
+    90%{
+      opacity:.7;
+    }
+    100%{
+      transform:translateX(115vw) translateY(8px) scale(.9);
+      opacity:0;
+    }
+  }
+
+  /* =====================================================
+     SUELO
+  ===================================================== */
+
+  .ground{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:20vh;
+    background:linear-gradient(
+      180deg,
+      var(--grass-light) 0%,
+      var(--grass-dark) 100%
+    );
+    clip-path:polygon(
+      0% 38%, 6% 28%, 12% 40%, 18% 26%, 24% 38%,
+      30% 28%, 36% 40%, 42% 26%, 48% 38%, 54% 28%,
+      60% 40%, 66% 26%, 72% 38%, 78% 28%, 84% 40%,
+      90% 26%, 96% 38%, 100% 28%, 100% 100%, 0% 100%
+    );
+  }
+
+  /* =====================================================
+     PARTICULAS
+  ===================================================== */
+
+  .drift{
+    position:absolute;
+    bottom:-10%;
+    opacity:0;
+    animation:driftUp linear infinite;
+    will-change:transform,opacity;
+  }
+
+  @keyframes driftUp{
+    0%{
+      transform:translateY(0) translateX(0) rotate(0deg) scale(var(--s,1));
+      opacity:0;
+    }
+    10%{
+      opacity:var(--o,.5);
+    }
+    85%{
+      opacity:var(--o,.5);
+    }
+    100%{
+      transform:translateY(-115vh) translateX(var(--drift,30px)) rotate(var(--rot,20deg)) scale(var(--s,1));
+      opacity:0;
+    }
+  }
+
+  /* =====================================================
+     STAGE
+  ===================================================== */
+
+  .stage{
+    position:relative;
+    z-index:2;
+    width:100%;
+    height:100vh;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding-bottom:0;
+  }
+
+  .scene-wrap{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transform:translateY(42px);
+  }
+
+  .scene-wrap.hidden{
+    display:none;
+  }
+
+  .scene-svg{
+    width:min(480px,88vw);
+    height:auto;
+    overflow:visible;
+  }
+
+  /* =====================================================
+     ARBOLES
+  ===================================================== */
+
+  .tree{
+    animation:treeSway 4.5s ease-in-out infinite;
+    transform-origin:50% 100%;
+  }
+
+  .tree.t2{
+    animation-delay:-1.5s;
+  }
+
+  .tree.t3{
+    animation-delay:-3s;
+  }
+
+  @keyframes treeSway{
+    0%,100%{
+      transform:rotate(-1.5deg);
+    }
+    50%{
+      transform:rotate(1.5deg);
+    }
+  }
+
+  /* =====================================================
+     CORAZON
+  ===================================================== */
+
+  .heart-wrap{
+    cursor:pointer;
+    animation:heartFloat 2.6s ease-in-out infinite;
+    transform-origin:center;
+  }
+
+  @keyframes heartFloat{
+    0%,100%{
+      transform:translateY(0) scale(1);
+    }
+    50%{
+      transform:translateY(-5px) scale(1.05);
+    }
+  }
+
+  .heart-wing{
+    transform-origin:center;
+  }
+
+  .wing.left{
+    animation:wingLeft 1.2s ease-in-out infinite;
+    transform-origin:-2px 7px;
+  }
+
+  .wing.right{
+    animation:wingRight 1.2s ease-in-out infinite;
+    transform-origin:2px 7px;
+  }
+
+  @keyframes wingLeft{
+    0%,100%{
+      transform:rotate(0deg) scaleX(1);
+    }
+    50%{
+      transform:rotate(-5deg) scaleX(.9);
+    }
+  }
+
+  @keyframes wingRight{
+    0%,100%{
+      transform:rotate(0deg) scaleX(1);
+    }
+    50%{
+      transform:rotate(5deg) scaleX(.9);
+    }
+  }
+
+  .scene-wrap.opening .heart-wrap{
+    transition: transform .6s ease-in, opacity .5s ease-in;
+    transform:scale(2.6);
+    opacity:0;
+  }
+
+  .scene-wrap.opening .scene-svg > .rest-of-scene{
+    transition:opacity .5s ease;
+    opacity:0;
+  }
+
+  .scene-wrap.opening{
+    pointer-events:none;
+  }
+
+  /* =====================================================
+     TEXTOS
+  ===================================================== */
+
+  .scene-hint{
+    margin-top:18px;
+    color:var(--lavender);
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-size:18px;
+    letter-spacing:.5px;
+    text-align:center;
+    text-shadow:0 1px 4px rgba(255,255,255,.6);
+  }
+
+  .day-badge{
+    margin-top:8px;
+    color:#8a5a2e;
+    font-family:'Cinzel',serif;
+    font-size:13px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    text-shadow:0 1px 4px rgba(255,255,255,.6);
+  }
+
+  /* =====================================================
+     CARTA
+  ===================================================== */
+
+  .letter-container{
+    position:fixed;
+    inset:0;
+    z-index:6;
+    opacity:0;
+    transform:scale(.97);
+    transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.3,1.1);
+    pointer-events:none;
+  }
+
+  .letter-container.show{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+  }
+
+  .scroll{
+    position:relative;
+    width:100%;
+    height:100%;
+    max-width:720px;
+    margin:0 auto;
+    background: radial-gradient(ellipse at top left, rgba(180,150,60,.10), transparent 55%), var(--parchment);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 90px rgba(0,0,0,.4);
+  }
+
+  @media(min-width:640px){
+    .letter-container{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:4vh 0;
+    }
+    .scroll{
+      height:92vh;
+      border-radius:3px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.4), 0 0 0 1px var(--parchment-edge);
+    }
+  }
+
+  .scroll::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 33px, rgba(122,90,48,.06) 34px);
+    opacity:.5;
+  }
+
+  .scroll-header{
+    flex-shrink:0;
+    padding:34px 40px 8px;
+    text-align:center;
+    border-bottom: 1px solid rgba(122,90,48,.18);
+  }
+
+  .scroll-header .day{
+    font-family:'Cinzel',serif;
+    font-size:14px;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--wine);
+    opacity:.75;
+  }
+
+  .scroll-header .date{
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-size:17px;
+    color:var(--ink);
+    opacity:.65;
+    margin-top:10px;
+  }
+
+  .scroll-header .date:empty{
+    display:none;
+  }
+
+  .scroll-header .title{
+    font-family:'Cinzel',serif;
+    font-size:26px;
+    color:var(--wine);
+    margin-top:8px;
+    letter-spacing:1px;
+  }
+
+  .scroll-body{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 44px 34px;
+    scrollbar-width:thin;
+    scrollbar-color: var(--gold) transparent;
+  }
+
+  .scroll-body::-webkit-scrollbar{
+    width:6px;
+  }
+
+  .scroll-body::-webkit-scrollbar-thumb{
+    background:var(--parchment-edge);
+    border-radius:4px;
+  }
+
+  .scroll-body::-webkit-scrollbar-thumb:hover{
+    background:var(--gold);
+  }
+
+  .letter-text{
+    position:relative;
+    z-index:2;
+    font-family:'Cormorant Garamond',serif;
+    font-size:21px;
+    line-height:1.75;
+    color:var(--ink);
+  }
+
+  .letter-text p{
+    margin:0 0 18px;
+  }
+
+  .letter-drift{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:1;
+    overflow:hidden;
+  }
+
+  /* =====================================================
+     BOTONES
+  ===================================================== */
+
+  .close-btn{
+    position:absolute;
+    top:12px;
+    right:16px;
+    z-index:10;
+    background:none;
+    border:none;
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-size:15px;
+    color:var(--gold);
+    cursor:pointer;
+    opacity:.7;
+    transition:opacity .2s ease;
+  }
+
+  .close-btn:hover{
+    opacity:1;
+  }
+
+  .music-btn{
+    position:absolute;
+    top:12px;
+    left:16px;
+    z-index:10;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border: 1px solid var(--parchment-edge);
+    background:var(--parchment);
+    color:var(--wine);
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    transition: transform .2s ease, opacity .2s ease;
+    opacity:.85;
+  }
+
+  .music-btn:hover{
+    transform:scale(1.08);
+    opacity:1;
+  }
+
+  .music-btn .note-playing{
+    display:none;
+  }
+
+  .music-btn.playing .note-idle{
+    display:none;
+  }
+
+  .music-btn.playing .note-playing{
+    display:inline;
+  }
+
+  .music-btn.playing{
+    animation:notePulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes notePulse{
+    0%,100%{
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    50%{
+      box-shadow: 0 2px 14px rgba(122,90,48,.4);
+    }
+  }
+
+  @media(max-width:480px){
+    .letter-text{
+      font-size:18px;
+    }
+    .scroll-header .title{
+      font-size:22px;
+    }
+    .scroll-body{
+      padding:14px 26px 26px;
+    }
+    .scroll-header{
+      padding:26px 26px 8px;
+    }
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    .drift, .cloud, .tree, .heart-wrap, .wing, .bird{
+      animation:none !important;
+    }
+    .letter-container{
+      transition:opacity .3s ease !important;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- FONDO -->
+<div class="scene" id="scene">
+  <div class="ground"></div>
+</div>
+
+<!-- ESCENA PRINCIPAL -->
+<div class="stage">
+  <div class="scene-wrap" id="sceneWrap">
+
+    <svg class="scene-svg" viewBox="0 0 500 340" xmlns="http://www.w3.org/2000/svg">
+      <g class="rest-of-scene">
+
+        <!-- =================================================
+             CASTILLO MEJORADO
+        ================================================== -->
+        <!-- Sombra y base de la torre -->
+        <rect x="310" y="0" width="190" height="340" fill="var(--tower-stone)"/>
+        <rect x="310" y="0" width="25" height="340" fill="rgba(0,0,0,0.06)"/>
+        
+        <!-- Almenas superiores -->
+        <path d="M310,0 L310,-18 L330,-18 L330,0 L345,0 L345,-18 L365,-18 L365,0 L380,0 L380,-18 L400,-18 L400,0 L415,0 L415,-18 L435,-18 L435,0 L450,0 L450,-18 L470,-18 L470,0 L485,0 L485,-18 L500,-18 L500,0 Z" fill="var(--tower-stone)"/>
+        <rect x="310" y="0" width="190" height="15" fill="#b9abb2"/>
+        
+        <!-- Ladrillos estilizados para textura -->
+        <g fill="rgba(0,0,0,0.05)">
+          <rect x="325" y="30" width="35" height="15" rx="2"/>
+          <rect x="390" y="50" width="45" height="15" rx="2"/>
+          <rect x="450" y="25" width="25" height="15" rx="2"/>
+          <rect x="340" y="90" width="40" height="15" rx="2"/>
+          <rect x="420" y="105" width="35" height="15" rx="2"/>
+          <rect x="320" y="150" width="30" height="15" rx="2"/>
+          <rect x="460" y="140" width="35" height="15" rx="2"/>
+          <rect x="365" y="240" width="45" height="15" rx="2"/>
+          <rect x="430" y="260" width="40" height="15" rx="2"/>
+          <rect x="330" y="295" width="50" height="15" rx="2"/>
+        </g>
+
+        <!-- =================================================
+             VENTANA DE JULIETA
+        ================================================== -->
+        <path d="M366,194 L366,121 C366,88 384,66 406,66 C428,66 446,88 446,121 L446,194 Z" fill="#2d222b"/>
+        <path d="M374,191 L374,123 C374,98 387,78 406,78 C425,78 438,98 438,123 L438,191 Z" fill="#3f303c"/>
+        <path d="M380,190 L380,124 C380,104 391,87 406,87 C421,87 432,104 432,124 L432,190 Z" fill="#1f151e"/>
+
+        <!-- =================================================
+             JULIETA MEJORADA
+        ================================================== -->
+        <g transform="translate(406, 140)">
+           <!-- Pelo Atrás -->
+           <path d="M -16,-20 C -28,10 -22,45 -15,55 C 0,55 15,55 15,55 C 22,45 28,10 16,-20 Z" fill="#f0cf6e"/>
+           <!-- Vestido -->
+           <path d="M -14,-10 C -22,20 -28,50 -28,60 L 28,60 C 28,50 22,20 14,-10 Z" fill="#e2a8c6"/>
+           <path d="M -14,-10 L 0,8 L 14,-10 Z" fill="#fff" opacity="0.5"/>
+           <!-- Cuello y Cabeza -->
+           <rect x="-4" y="-30" width="8" height="12" fill="#f0c9a0"/>
+           <circle cx="0" cy="-40" r="14" fill="#f0c9a0"/>
+           <!-- Pelo Frente -->
+           <path d="M -14,-40 C -16,-62 16,-62 14,-40 C 10,-52 -10,-52 -14,-40 Z" fill="#e5c05c"/>
+           <path d="M -12,-45 C -16,-30 -16,-10 -11,0 C -13,-15 -11,-30 -12,-45 Z" fill="#e5c05c"/>
+           <path d="M 12,-45 C 16,-30 16,-10 11,0 C 13,-15 11,-30 12,-45 Z" fill="#e5c05c"/>
+           <!-- Diadema -->
+           <path d="M -12,-48 Q 0,-45 12,-48" fill="none" stroke="var(--gold)" stroke-width="2"/>
+           <circle cx="0" cy="-46" r="2.5" fill="#d81638"/>
+           <!-- Cara -->
+           <circle cx="-5" cy="-38" r="1.5" fill="#2a1c10"/>
+           <circle cx="5" cy="-38" r="1.5" fill="#2a1c10"/>
+           <circle cx="-5.5" cy="-38.5" r="0.6" fill="#fff"/>
+           <circle cx="4.5" cy="-38.5" r="0.6" fill="#fff"/>
+           <path d="M -3,-31 Q 0,-28 3,-31" fill="none" stroke="#a8506a" stroke-width="1.5" stroke-linecap="round"/>
+           <ellipse cx="-8" cy="-34" rx="3" ry="2" fill="#f2a8a8" opacity="0.6"/>
+           <ellipse cx="8" cy="-34" rx="3" ry="2" fill="#f2a8a8" opacity="0.6"/>
+           <!-- Mangas Elegantes -->
+           <path d="M -12,-10 C -26,-10 -26,10 -16,15 C -19,25 -21,35 -21,40" fill="none" stroke="#e2a8c6" stroke-width="8" stroke-linecap="round"/>
+           <path d="M 12,-10 C 26,-10 26,10 16,15 C 19,25 21,35 21,40" fill="none" stroke="#e2a8c6" stroke-width="8" stroke-linecap="round"/>
+           <!-- Manos en el balcón -->
+           <circle cx="-21" cy="42" r="4.5" fill="#f0c9a0"/>
+           <circle cx="21" cy="42" r="4.5" fill="#f0c9a0"/>
+        </g>
+
+        <!-- =================================================
+             BALCON MEJORADO
+        ================================================== -->
+        <!-- Soportes -->
+        <path d="M 355,220 L 355,245 L 375,220 Z" fill="var(--tower-stone-dark)"/>
+        <path d="M 437,220 L 437,245 L 417,220 Z" fill="var(--tower-stone-dark)"/>
+        <!-- Base de piedra -->
+        <path d="M 335,190 L 457,190 L 445,220 L 347,220 Z" fill="#b9abb2"/>
+        <rect x="335" y="190" width="122" height="6" fill="var(--tower-stone-dark)"/>
+        <!-- Baranda de hierro -->
+        <rect x="340" y="172" width="112" height="6" rx="2" fill="#3f303c"/>
+        <g fill="#3f303c">
+           <rect x="345" y="178" width="4" height="12"/>
+           <rect x="360" y="178" width="4" height="12"/>
+           <rect x="375" y="178" width="4" height="12"/>
+           <rect x="390" y="178" width="4" height="12"/>
+           <rect x="405" y="178" width="4" height="12"/>
+           <rect x="420" y="178" width="4" height="12"/>
+           <rect x="435" y="178" width="4" height="12"/>
+           <rect x="445" y="178" width="4" height="12"/>
+        </g>
+
+        <!-- =================================================
+             ENREDADERA DE ROSAS
+        ================================================== -->
+        <path d="M315,340 C300,280 330,220 310,160 C290,100 330,40 310,0" fill="none" stroke="#4c9a4a" stroke-width="4"/>
+        <g fill="#5c9a4a">
+           <ellipse cx="310" cy="280" rx="9" ry="4" transform="rotate(30 310 280)"/>
+           <ellipse cx="320" cy="250" rx="9" ry="4" transform="rotate(-40 320 250)"/>
+           <ellipse cx="308" cy="200" rx="9" ry="4" transform="rotate(45 308 200)"/>
+           <ellipse cx="320" cy="150" rx="9" ry="4" transform="rotate(-30 320 150)"/>
+           <ellipse cx="305" cy="100" rx="9" ry="4" transform="rotate(20 305 100)"/>
+           <ellipse cx="318" cy="50" rx="9" ry="4" transform="rotate(-25 318 50)"/>
+           <ellipse cx="325" cy="310" rx="9" ry="4" transform="rotate(-20 325 310)"/>
+        </g>
+        <g fill="#d81638">
+           <circle cx="318" cy="290" r="6"/>
+           <circle cx="305" cy="235" r="6"/>
+           <circle cx="315" cy="180" r="6"/>
+           <circle cx="305" cy="120" r="6"/>
+           <circle cx="320" cy="80" r="6"/>
+           <circle cx="310" cy="30" r="6"/>
+        </g>
+
+        <!-- =================================================
+             ARBOLES SEPARADOS Y MEJORADOS
+        ================================================== -->
+        <g class="tree t1">
+           <rect x="50" y="222" width="11" height="62" rx="3" fill="#604020"/>
+           <circle cx="33" cy="202" r="32" fill="#3d7a3a"/>
+           <circle cx="79" cy="204" r="32" fill="#3d7a3a"/>
+           <circle cx="56" cy="180" r="38" fill="#4c9a4a"/>
+           <circle cx="56" cy="170" r="24" fill="#6ec25e"/>
+        </g>
+
+        <g class="tree t2">
+           <rect x="113" y="233" width="9" height="52" rx="3" fill="#503010"/>
+           <circle cx="99" cy="213" r="28" fill="#2d6a2a"/>
+           <circle cx="137" cy="215" r="28" fill="#3d7a3a"/>
+           <circle cx="118" cy="194" r="30" fill="#4c9a4a"/>
+           <circle cx="118" cy="185" r="19" fill="#5c9a4a"/>
+        </g>
+
+        <g class="tree t3">
+           <rect x="171" y="244" width="8" height="41" rx="3" fill="#704020"/>
+           <circle cx="159" cy="226" r="23" fill="#3d7a3a"/>
+           <circle cx="189" cy="228" r="23" fill="#5c9a4a"/>
+           <circle cx="175" cy="210" r="25" fill="#4c9a4a"/>
+           <circle cx="175" cy="201" r="17" fill="#6ec25e"/>
+        </g>
+        
+        <!-- Arbustos pequeños rellenando el fondo -->
+        <circle cx="95" cy="285" r="15" fill="#3d7a3a"/>
+        <circle cx="155" cy="280" r="18" fill="#4c9a4a"/>
+        <circle cx="215" cy="285" r="12" fill="#5c9a4a"/>
+
+        <!-- =================================================
+             ROMEO MEJORADO (Traje de Época)
+        ================================================== -->
+        <ellipse cx="234" cy="294" rx="35" ry="6" fill="rgba(20,15,10,.25)"/> <!-- Sombra -->
+        
+        <g transform="translate(230, 205)">
+           <!-- Capa trasera -->
+           <path d="M -15,-80 C -45,-55 -50,5 -30,65 C -15,80 -10,85 0,85 C -20,40 -20,-20 -5,-75 Z" fill="var(--purple-dark)"/>
+           
+           <!-- Piernas (Mallas y botas) -->
+           <path d="M -10,5 L -14,55 L -22,55 L -22,75 L -5,75 L -2,5 Z" fill="#241a10"/>
+           <path d="M 8,5 L 12,60 L 22,60 L 22,80 L 5,80 L 2,5 Z" fill="#241a10"/>
+           
+           <!-- Pantalones abombados (Pumpkin breeches) -->
+           <ellipse cx="-5" cy="0" rx="15" ry="18" fill="var(--purple)"/>
+           <ellipse cx="7" cy="0" rx="15" ry="18" fill="var(--purple)"/>
+           <path d="M -16,0 Q 0,15 16,0" fill="none" stroke="var(--gold)" stroke-width="2"/>
+           
+           <!-- Torso y jubón (doublet) -->
+           <path d="M -16,-75 L 16,-75 L 12,-10 L -12,-10 Z" fill="var(--purple)"/>
+           <!-- Cinturón -->
+           <rect x="-14" y="-15" width="28" height="8" fill="#241a10" rx="2"/>
+           <rect x="-5" y="-17" width="10" height="12" fill="none" stroke="var(--gold)" stroke-width="2" rx="1"/>
+           
+           <!-- Detalles dorados en el pecho -->
+           <path d="M -6,-75 L 0,-15 L 6,-75" fill="none" stroke="var(--gold)" stroke-width="2"/>
+           
+           <!-- Brazo Izquierdo (hacia atrás) -->
+           <path d="M -15,-70 C -35,-50 -25,-20 -20,-5" fill="none" stroke="var(--purple)" stroke-width="12" stroke-linecap="round"/>
+           <circle cx="-20" cy="-5" r="6" fill="#e7b98c"/> <!-- Mano -->
+           <ellipse cx="-15" cy="-70" rx="10" ry="12" fill="var(--gold)"/> <!-- Manga abombada -->
+
+           <!-- Brazo Derecho (apuntando hacia Julieta) -->
+           <path d="M 15,-70 C 35,-60 55,-70 70,-80" fill="none" stroke="var(--purple)" stroke-width="12" stroke-linecap="round"/>
+           <circle cx="70" cy="-80" r="6" fill="#e7b98c"/> <!-- Mano -->
+           <ellipse cx="15" cy="-70" rx="10" ry="12" fill="var(--gold)"/> <!-- Manga abombada -->
+
+           <!-- Cuello blanco -->
+           <path d="M -12,-75 Q 0,-65 12,-75 Q 0,-85 -12,-75 Z" fill="#fff"/>
+           
+           <!-- Cabeza -->
+           <circle cx="0" cy="-95" r="16" fill="#e7b98c"/>
+           <path d="M -16,-90 C -16,-106 -8,-115 0,-115 C 8,-115 16,-106 16,-90 C 10,-97 4,-100 0,-100 C -4,-100 -10,-97 -16,-90 Z" fill="#4a2c18"/> <!-- Pelo -->
+           
+           <!-- Detalles de la Cara -->
+           <circle cx="-5" cy="-96" r="1.8" fill="#1a1005"/>
+           <circle cx="5" cy="-96" r="1.8" fill="#1a1005"/>
+           <circle cx="-5.5" cy="-96.5" r="0.6" fill="#fff"/>
+           <circle cx="4.5" cy="-96.5" r="0.6" fill="#fff"/>
+           <path d="M -3,-89 Q 0,-86 3,-89" fill="none" stroke="#a8506a" stroke-width="1.5" stroke-linecap="round"/>
+           <ellipse cx="-9" cy="-92" rx="3" ry="2" fill="#f2a8a8" opacity="0.5"/>
+           <ellipse cx="9" cy="-92" rx="3" ry="2" fill="#f2a8a8" opacity="0.5"/>
+           
+           <!-- Sombrero Boina con Pluma -->
+           <ellipse cx="0" cy="-106" rx="18" ry="8" fill="var(--purple-dark)" transform="rotate(-15 0 -106)"/>
+           <path d="M -15,-103 C -20,-100 15,-98 18,-106 Z" fill="#3a2450"/>
+           <path d="M 10,-105 C 22,-125 35,-135 50,-140 C 35,-125 18,-110 10,-105 Z" fill="#d81638"/> <!-- Pluma elegante -->
+        </g>
+
+        <!-- =================================================
+             CORAZON CON ALAS (Exactamente igual para el Click)
+        ================================================== -->
+        <g class="heart-wrap" id="heartWrap" transform="translate(325, 115)">
+          <path class="wing left" d="M-7,2 C-20,-11 -37,-14 -47,-4 C-56,5 -49,21 -37,26 C-26,31 -13,25 -5,17 C-9,12 -9,7 -7,2 Z" fill="#fff" stroke="#e8c8d0" stroke-width="1.5"/>
+          <path class="wing right" d="M7,2 C20,-11 37,-14 47,-4 C56,5 49,21 37,26 C26,31 13,25 5,17 C9,12 9,7 7,2 Z" fill="#fff" stroke="#e8c8d0" stroke-width="1.5"/>
+          <path d="M0,26 C-16,14 -24,2 -24,-8 C-24,-18 -16,-24 -8,-24 C-2,-24 2,-20 0,-14 C-2,-20 2,-24 8,-24 C16,-24 24,-18 24,-8 C24,2 16,14 0,26 Z" fill="#d81638"/>
+          <path d="M-14,-14 Q-18,-8 -16,-3" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+
+      </g>
+    </svg>
+
+    <div class="day-badge" id="dayBadge">10/08/26</div>
+    <div class="scene-hint">toca el corazón para leer la carta de hoy</div>
+  </div>
+
+  <!-- CARTA -->
+  <div class="letter-container" id="letterContainer">
+    <div class="scroll">
+      <button class="close-btn" id="closeBtn">cerrar ✕</button>
+      <button class="music-btn" id="musicBtn" aria-label="Pausar o reproducir música">
+        <span class="note-idle">🎵</span>
+        <span class="note-playing">⏸</span>
+      </button>
+      <audio id="bgAudio" src="cancion.mp3" loop preload="auto"></audio>
+      <div class="letter-drift" id="letterDrift"></div>
+      
+      <div class="scroll-header">
+        <div class="day" id="dayLabel">10/08/26</div>
+        <div class="title" id="titleLabel">Carta 8</div>
+        <div class="date" id="subtitleLabel"></div>
+      </div>
+      
+      <div class="scroll-body">
+        <div class="letter-text" id="letterText">
+          <p>
+            [Aquí va el texto de hoy — mándamelo y lo coloco tal cual, sin cambiar nada.]
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =====================================================
+     CONFIGURACIÓN
+  ===================================================== */
+  const DAY_NUMBER = 8;
+  const DATE_LABEL = '10/08/26';
+  const SUBTITLE_TEXT = '';
+
+  document.getElementById('dayBadge').textContent = DATE_LABEL;
+  document.getElementById('dayLabel').textContent = DATE_LABEL;
+  document.getElementById('titleLabel').textContent = 'Carta ' + DAY_NUMBER;
+  document.getElementById('subtitleLabel').textContent = SUBTITLE_TEXT;
+
+  /* =====================================================
+     RANDOM
+  ===================================================== */
+  function rand(min,max){ return Math.random() * (max-min) + min; }
+
+  /* =====================================================
+     NUBES
+  ===================================================== */
+  const scene = document.getElementById('scene');
+  const cloudConfigs = [
+    { top:'10%', w:110, h:36, dur:60 },
+    { top:'18%', w:80, h:28, dur:80 },
+    { top:'6%', w:65, h:24, dur:70 }
+  ];
+
+  cloudConfigs.forEach(c => {
+    const cloud = document.createElement('div');
+    cloud.className='cloud';
+    cloud.style.top=c.top;
+    cloud.style.width=c.w+'px';
+    cloud.style.height=c.h+'px';
+    cloud.style.animationDuration= c.dur+'s';
+    cloud.style.animationDelay= '-' + rand(0,c.dur) + 's';
+    scene.appendChild(cloud);
+  });
+
+  /* =====================================================
+     PAJARITOS
+  ===================================================== */
+  function createBird(top, duration, delay){
+    const bird = document.createElement('div');
+    bird.className='bird';
+    bird.style.setProperty('--top', top);
+    bird.style.setProperty('--duration', duration);
+    bird.style.setProperty('--delay', delay);
+    scene.appendChild(bird);
+  }
+
+  createBird('13%', '24s', '-5s');
+  createBird('24%', '30s', '-18s');
+  createBird('9%', '27s', '-31s');
+
+  /* =====================================================
+     CORAZONES Y DESTELLOS
+  ===================================================== */
+  const DRIFT_SYMBOLS = ['💗', '❤️‍🩹', '💕', '✨'];
+
+  function spawnDrift(containerId, count, sizeRange, opacityRange, durationRange, className){
+    const container = document.getElementById(containerId);
+    for(let i=0; i<count; i++){
+      const el = document.createElement('span');
+      el.className = className;
+      el.textContent = DRIFT_SYMBOLS[Math.floor(Math.random() * DRIFT_SYMBOLS.length)];
+      
+      const size = rand(sizeRange[0], sizeRange[1]);
+      const duration = rand(durationRange[0], durationRange[1]);
+      const delay = rand(0, durationRange[1]);
+      
+      el.style.left = rand(0,100) + '%';
+      el.style.fontSize = size + 'px';
+      el.style.animationDuration = duration + 's';
+      el.style.animationDelay = '-' + delay + 's';
+      el.style.setProperty('--drift', rand(-60,60) + 'px');
+      el.style.setProperty('--rot', rand(-30,30) + 'deg');
+      el.style.setProperty('--o', rand(opacityRange[0], opacityRange[1]));
+      el.style.setProperty('--s', rand(.8,1.15));
+      container.appendChild(el);
+    }
+  }
+
+  spawnDrift('scene', 8, [14,22], [.3,.55], [11,20], 'drift');
+  spawnDrift('letterDrift', 12, [14,22], [.10,.20], [9,16], 'drift');
+
+  /* =====================================================
+     REFERENCIAS
+  ===================================================== */
+  const sceneWrap = document.getElementById('sceneWrap');
+  const heartWrap = document.getElementById('heartWrap');
+  const letterContainer = document.getElementById('letterContainer');
+  const closeBtn = document.getElementById('closeBtn');
+  const musicBtn = document.getElementById('musicBtn');
+  const bgAudio = document.getElementById('bgAudio');
+
+  /* =====================================================
+     MUSICA
+  ===================================================== */
+  function playMusic(){
+    bgAudio.play().then(() => {
+      musicBtn.classList.add('playing');
+    }).catch(() => {
+      musicBtn.classList.remove('playing');
+    });
+  }
+
+  function pauseMusic(){
+    bgAudio.pause();
+    musicBtn.classList.remove('playing');
+  }
+
+  /* =====================================================
+     ABRIR CARTA
+  ===================================================== */
+  heartWrap.addEventListener('click', () => {
+    sceneWrap.classList.add('opening');
+    setTimeout(() => {
+      sceneWrap.classList.add('hidden');
+      letterContainer.classList.add('show');
+    },550);
+    playMusic();
+  });
+
+  /* =====================================================
+     CERRAR CARTA
+  ===================================================== */
+  closeBtn.addEventListener('click', () => {
+    letterContainer.classList.remove('show');
+    setTimeout(() => {
+      sceneWrap.classList.remove('hidden');
+      sceneWrap.classList.remove('opening');
+    },450);
+    pauseMusic();
+  });
+
+  /* =====================================================
+     BOTON MUSICA
+  ===================================================== */
+  musicBtn.addEventListener('click', () => {
+    if(bgAudio.paused){
+      playMusic();
+    }else{
+      pauseMusic();
+    }
+  });
+
+</script>
+</body>
+</html>
