@@ -195,7 +195,7 @@
     display:flex;
     align-items:flex-end;
     justify-content:center;
-    padding-bottom:0;
+    padding-bottom:60px;
   }
 
   .scene-wrap{
@@ -312,25 +312,34 @@
      TEXTOS
   ===================================================== */
 
-  .scene-hint{
-    margin-top:18px;
-    color:var(--lavender);
+  .badge-sep{
+    opacity:.5;
+    margin:0 6px;
+  }
+  .badge-hint{
     font-family:'Cormorant Garamond',serif;
     font-style:italic;
-    font-size:18px;
-    letter-spacing:.5px;
-    text-align:center;
-    text-shadow:0 1px 4px rgba(255,255,255,.6);
+    text-transform:none;
+    letter-spacing:normal;
   }
 
   .day-badge{
-    margin-top:8px;
-    color:#8a5a2e;
+    margin-top:14px;
+    display:inline-flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    max-width:88vw;
+    padding:7px 20px;
+    background:var(--parchment);
+    border:1px solid var(--parchment-edge);
+    border-radius:20px;
+    color:var(--wine);
     font-family:'Cinzel',serif;
-    font-size:13px;
-    letter-spacing:3px;
+    font-size:14px;
+    letter-spacing:2px;
     text-transform:uppercase;
-    text-shadow:0 1px 4px rgba(255,255,255,.6);
+    box-shadow:0 3px 12px rgba(0,0,0,.25);
   }
 
   /* =====================================================
@@ -798,8 +807,7 @@
       </g>
     </svg>
 
-    <div class="day-badge" id="dayBadge">10/08/26</div>
-    <div class="scene-hint">toca el corazón para leer la carta de hoy</div>
+    <div class="day-badge" id="dayBadge"><span id="dayBadgeDate">10/08/26</span><span class="badge-sep">·</span><span class="badge-hint">toca el corazón para leer la carta de hoy</span></div>
   </div>
 
   <!-- CARTA -->
@@ -839,10 +847,10 @@
      CONFIGURACIÓN
   ===================================================== */
   const DAY_NUMBER = 8;
-  const DATE_LABEL = '10/08/26';
+  const DATE_LABEL = '12/08/26';
   const SUBTITLE_TEXT = 'Mi julieta ❤️‍🩹👑 💗💍';
 
-  document.getElementById('dayBadge').textContent = DATE_LABEL;
+  document.getElementById('dayBadgeDate').textContent = DATE_LABEL;
   document.getElementById('dayLabel').textContent = DATE_LABEL;
   document.getElementById('titleLabel').textContent = 'Carta ' + DAY_NUMBER;
   document.getElementById('subtitleLabel').textContent = SUBTITLE_TEXT;
